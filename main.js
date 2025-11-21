@@ -67,20 +67,20 @@ addEventListeners(); // eventHandlers.js
 requestAnimationFrame(render);
 
 function render() {
+  gl.onResize();
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
   // camera / matrices
   eye = vec3(camX, camY, camZ);
   modelViewMatrix = lookAt(eye, at, up);
   const fovy = 60;
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   projectionMatrix = perspective(fovy, aspect, near, far); // MVnew.js
-
   // lighting (from GUI)
   lightPosition = vec4(lightX, lightY, lightZ, 0.0);
-
   // upload lighting & material products
-  gl.uniform4fv(uLightPositionLoc, flatten(lightPosition));
+  // transform light into eye-space
+  const lightPositionEye = mult(modelViewMatrix, lightPosition);
+  gl.uniform4fv(uLightPositionLoc, flatten(lightPositionEye));
   gl.uniform4fv(
     uAmbientProductLoc,
     flatten(mult(lightAmbient, materialAmbient))
@@ -94,7 +94,6 @@ function render() {
     flatten(mult(lightSpecular, materialSpecular))
   );
   gl.uniform1f(uShininessLoc, materialShininess);
-
   // upload matrices & normal matrix
   gl.uniformMatrix4fv(uModelViewMatrixLoc, false, flatten(modelViewMatrix));
   gl.uniformMatrix4fv(uProjectionMatrixLoc, false, flatten(projectionMatrix));
@@ -103,9 +102,7 @@ function render() {
     false,
     flatten(normalMatrix(modelViewMatrix, true))
   );
-
   // draw terrain mesh (attributes already bound)
   gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 4);
-
   requestAnimationFrame(render);
 }
