@@ -1,6 +1,6 @@
 function generateMesh() {
   let meshVertices = [];
-  let size = 10;
+  let size = 25;
   let step = 0.1; // smoothness
   let offset = -5;
   function elevation(x, z) {
